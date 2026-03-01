@@ -115,7 +115,7 @@ async function captureMapSnapshot(exportScale = 1) {
 						const markerPoint = project(markerData.lat, markerData.lon, scale);
 						const x = (canvas.width / 2) + (markerPoint.x - centerPoint.x);
 						const y = (canvas.height / 2) + (markerPoint.y - centerPoint.y);
-						await drawMarkerToCtx(ctx, x, y, color);
+						await drawMarkerToCtx(ctx, x, y, color, scaleFactor);
 					}
 				}
 
@@ -210,9 +210,12 @@ async function captureMapSnapshot(exportScale = 1) {
 
 				for (const markerData of state.markers) {
 					const markerPoint = project(markerData.lat, markerData.lon, scaleMap);
-					const x = (canvas.width / 2) + (markerPoint.x - centerPoint.x);
-					const y = (canvas.height / 2) + (markerPoint.y - centerPoint.y);
-					await drawMarkerToCtx(ctx, x, y, color);
+					// Multiply offsets by scaleFactor so markers land at the correct
+					// canvas position when the export canvas is larger than the
+					// original Leaflet viewport (i.e. exportScale > 1).
+					const x = (canvas.width / 2) + (markerPoint.x - centerPoint.x) * scaleFactor;
+					const y = (canvas.height / 2) + (markerPoint.y - centerPoint.y) * scaleFactor;
+					await drawMarkerToCtx(ctx, x, y, color, scaleFactor);
 				}
 			}
 
@@ -302,11 +305,11 @@ function drawComplexRouteToCtx(ctx, points, color, themeBg = '#ffffff', scaleFac
 	drawPoint(points[points.length - 1].x, points[points.length - 1].y, 'B');
 }
 
-async function drawMarkerToCtx(ctx, x, y, color) {
+async function drawMarkerToCtx(ctx, x, y, color, scaleFactor = 1) {
 	const { state } = await import('./state.js');
 	const iconType = state.markerIcon || 'pin';
 	const baseSize = 40;
-	const size = Math.round(baseSize * (state.markerSize || 1));
+	const size = Math.round(baseSize * (state.markerSize || 1) * scaleFactor);
 	const svgString = markerIcons[iconType] || markerIcons.pin;
 	const svg = svgString
 		.replace('currentColor', color)
