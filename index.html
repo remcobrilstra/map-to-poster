@@ -75,12 +75,15 @@
 		<div class="flex-1 overflow-y-auto px-8 py-4 space-y-8 no-scrollbar">
 
 			<div id="section-location" class="space-y-4">
-				<div class="flex items-center justify-between">
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-location">
 					<h3 class="text-sm font-semibold text-slate-900">1. Define Location</h3>
-					<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">01</span>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">01</span>
+						<svg class="section-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
 				</div>
 
-				<div class="space-y-3">
+				<div id="section-location-body" class="space-y-3">
 					<div class="relative group">
 						<span class="label-sm">Search City</span>
 						<div class="relative">
@@ -153,12 +156,15 @@
 			</div>
 
 			<div id="section-marker" class="space-y-4">
-				<div class="flex items-center justify-between">
-					<h3 class="text-sm font-semibold text-slate-900">2. Marker & Route</h3>
-					<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">02</span>
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-marker">
+					<h3 class="text-sm font-semibold text-slate-900">2. Marker &amp; Route</h3>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">02</span>
+						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
 				</div>
 
-				<div class="space-y-4">
+				<div id="section-marker-body" class="space-y-4 hidden">
 					<div class="flex items-center justify-between">
 						<span class="label-sm mb-0">Show Location Marker</span>
 						<label class="relative inline-flex items-center cursor-pointer">
@@ -248,16 +254,59 @@
 						</div>
 						<p class="text-[9px] text-slate-400 italic text-center">Tip: Drag the markers on the map to set the route. Click on the line to add a custom bend. Double click a point to remove it.</p>
 					</div>
+
+					<div class="flex items-center justify-between">
+						<span class="label-sm mb-0">Show Location Border</span>
+						<div class="flex items-center gap-2">
+							<div id="location-border-loading" class="hidden">
+								<svg class="animate-spin h-3.5 w-3.5 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+							</div>
+							<label class="relative inline-flex items-center cursor-pointer">
+								<input type="checkbox" id="show-location-border-toggle" class="sr-only peer">
+								<div class="toggle-pill"></div>
+							</label>
+						</div>
+					</div>
+
+					<div id="border-settings" class="space-y-3 hidden">
+						<div>
+							<span class="label-sm">Border Colour</span>
+							<input type="color" id="border-color-input" value="#3b82f6" class="w-full h-8 rounded-lg cursor-pointer border border-slate-200" />
+						</div>
+
+						<div class="flex items-center justify-between">
+							<span class="label-sm mb-0">Fill Region</span>
+							<label class="relative inline-flex items-center cursor-pointer">
+								<input type="checkbox" id="border-fill-toggle" class="sr-only peer" checked>
+								<div class="toggle-pill"></div>
+							</label>
+						</div>
+
+						<div>
+							<span class="label-sm">Line Style</span>
+							<div class="grid grid-cols-3 gap-2 mt-1">
+								<button type="button" data-style="solid" class="border-style-btn px-3 py-2 text-[10px] font-bold rounded-lg bg-slate-50 border border-slate-100">Solid</button>
+								<button type="button" data-style="dashed" class="border-style-btn px-3 py-2 text-[10px] font-bold rounded-lg bg-accent text-white border border-slate-100">Dashed</button>
+								<button type="button" data-style="dotted" class="border-style-btn px-3 py-2 text-[10px] font-bold rounded-lg bg-slate-50 border border-slate-100">Dotted</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 
 			<div id="section-style" class="space-y-4">
-				<div class="flex items-center justify-between">
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-style">
 					<h3 class="text-sm font-semibold text-slate-900">3. Map Style</h3>
-					<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">03</span>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">03</span>
+						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
 				</div>
 
-				<div class="space-y-4">
+				<div id="section-style-body" class="space-y-4 hidden">
 					<div class="bg-slate-100 p-1 rounded-xl flex">
 						<button id="mode-tile" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all">Standard</button>
 						<button id="mode-artistic" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all">Artistic</button>
@@ -296,12 +345,15 @@
 			</div>
 
 			<div id="section-composition" class="space-y-4">
-				<div class="flex items-center justify-between">
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-composition">
 					<h3 class="text-sm font-semibold text-slate-900">4. Composition</h3>
-					<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">04</span>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">04</span>
+						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
 				</div>
 
-				<div class="space-y-4">
+				<div id="section-composition-body" class="space-y-4 hidden">
 					<div>
 						<div class="flex justify-between items-center mb-2">
 							<span class="label-sm mb-0">Perspective Zoom</span>
@@ -378,12 +430,15 @@
 			</div>
 
 			<div id="section-typography" class="space-y-4">
-				<div class="flex items-center justify-between">
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-typography">
 					<h3 class="text-sm font-semibold text-slate-900">5. Typography</h3>
-					<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">05</span>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">05</span>
+						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
 				</div>
 
-				<div class="space-y-4">
+				<div id="section-typography-body" class="space-y-4 hidden">
 					<div>
 						<span class="label-sm">City Font</span>
 						<div class="relative">
@@ -449,12 +504,15 @@
 			</div>
 
 			<div id="section-mat" class="space-y-4">
-				<div class="flex items-center justify-between">
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-mat">
 					<h3 class="text-sm font-semibold text-slate-900">6. Mat / Passepartout</h3>
-					<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">06</span>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">06</span>
+						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
 				</div>
 
-				<div class="space-y-4">
+				<div id="section-mat-body" class="space-y-4 hidden">
 					<div class="flex items-center justify-between">
 						<span class="label-sm mb-0">Enable Mat</span>
 						<label class="relative inline-flex items-center cursor-pointer">
@@ -502,12 +560,15 @@
 			</div>
 
 			<div id="section-output" class="space-y-4">
-				<div class="flex items-center justify-between">
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-output">
 					<h3 class="text-sm font-semibold text-slate-900">7. Output Size</h3>
-					<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">07</span>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">07</span>
+						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
 				</div>
 
-				<div class="space-y-4">
+				<div id="section-output-body" class="space-y-4 hidden">
 					<div class="grid grid-cols-2 gap-2">
 						<button class="preset-btn px-4 py-3 text-[11px] font-semibold border border-slate-100 bg-slate-50 rounded-xl hover:bg-white hover:border-accent hover:shadow-sm transition-all duration-200 flex flex-col items-center justify-center space-y-1" data-width="1080" data-height="1080">
 							<span>Square</span>
@@ -548,6 +609,18 @@
 		</div>
 
 		<div class="p-8 border-t border-slate-100 bg-slate-50/50 backdrop-blur-sm">
+			<div class="mb-4 space-y-2">
+				<div class="flex items-center justify-between">
+					<span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Print Scale</span>
+					<span id="export-scale-resolution" class="text-[10px] font-semibold text-slate-400"></span>
+				</div>
+				<div class="grid grid-cols-4 gap-1.5">
+					<button class="export-scale-btn px-2 py-2 text-[11px] font-bold border border-slate-200 bg-slate-50 rounded-xl hover:bg-white hover:border-accent hover:shadow-sm transition-all" data-scale="1">1×</button>
+					<button class="export-scale-btn px-2 py-2 text-[11px] font-bold border border-slate-200 bg-slate-50 rounded-xl hover:bg-white hover:border-accent hover:shadow-sm transition-all" data-scale="2">2×</button>
+					<button class="export-scale-btn px-2 py-2 text-[11px] font-bold border border-slate-200 bg-slate-50 rounded-xl hover:bg-white hover:border-accent hover:shadow-sm transition-all" data-scale="3">3×</button>
+					<button class="export-scale-btn px-2 py-2 text-[11px] font-bold border border-slate-200 bg-slate-50 rounded-xl hover:bg-white hover:border-accent hover:shadow-sm transition-all" data-scale="4">4×</button>
+				</div>
+			</div>
 			<button id="export-btn" class="w-full bg-slate-900 group-hover:bg-accent hover:bg-accent text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-slate-200 transition-all duration-300 flex items-center justify-center space-x-3 group active:scale-[0.98]">
 				<svg class="w-5 h-5 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

@@ -270,3 +270,11 @@ body.loaded {
 #mobile-sheet-c-content .flex.items-center.justify-between>span[class*="w-5"] {
 	display: none;
 }
+
+/* Collapsible sidebar sections */
+.section-chevron {
+	transition: transform 0.2s ease;
+}
+.section-chevron.is-collapsed {
+	transform: rotate(-90deg);
+}

@@ -54,6 +54,7 @@ export const defaultState = {
 	showCountry: true,
 	showCoords: true,
 	showAttribution: true,
+	exportScale: 1,
 };
 
 export const state = { ...defaultState };
@@ -101,7 +102,8 @@ const SAVED_KEYS = [
 	'overlayY',
 	'showCountry',
 	'showCoords',
-	'showAttribution'
+	'showAttribution',
+	'exportScale'
 ];
 
 function loadSettings() {

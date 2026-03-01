@@ -35,7 +35,7 @@ function loadImage(src) {
 	});
 }
 
-async function captureMapSnapshot() {
+async function captureMapSnapshot(exportScale = 1) {
 	const artisticContainer = document.getElementById('artistic-map');
 	const mapPreviewContainer = document.getElementById('map-preview');
 	const posterContainer = document.getElementById('poster-container');
@@ -45,8 +45,8 @@ async function captureMapSnapshot() {
 	const isArtistic = state.renderMode === 'artistic';
 
 	const matWidth = state.matEnabled ? (state.matWidth || 0) : 0;
-	const effectiveWidth = state.width - (2 * matWidth);
-	const effectiveHeight = state.height - (2 * matWidth);
+	const effectiveWidth = (state.width - (2 * matWidth)) * exportScale;
+	const effectiveHeight = (state.height - (2 * matWidth)) * exportScale;
 
 	let canvasWidth = Math.max(1, effectiveWidth);
 	let canvasHeight = Math.max(1, effectiveHeight);
@@ -328,9 +328,10 @@ export async function exportToPNG(element, filename, statusElement, options = {}
 	if (statusElement) statusElement.classList.remove('hidden');
 
 	try {
-		const snapshot = await captureMapSnapshot();
-		const targetWidth = state.width;
-		const targetHeight = state.height;
+		const exportScale = state.exportScale || 1;
+		const snapshot = await captureMapSnapshot(exportScale);
+		const targetWidth = state.width * exportScale;
+		const targetHeight = state.height * exportScale;
 
 		if (document.fonts && document.fonts.ready) {
 			try { await document.fonts.ready; } catch (e) { }
@@ -606,7 +607,7 @@ export async function exportToPNG(element, filename, statusElement, options = {}
 
 			if (snapImg) {
 				const matPx = state.matEnabled
-					? Math.round(state.matWidth * finalCanvas.width / targetWidth)
+					? Math.round(state.matWidth * finalCanvas.width / state.width)
 					: 0;
 				finalCtx.drawImage(
 					snapImg,

@@ -1005,6 +1005,13 @@ export function setupControls() {
 		updateState({ height: val });
 	});
 
+	document.querySelectorAll('.export-scale-btn').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const scale = parseFloat(btn.dataset.scale) || 1;
+			updateState({ exportScale: scale });
+		});
+	});
+
 	const resetSettingsBtn = document.getElementById('reset-settings-btn');
 	function doResetSettings() {
 		if (confirm('Are you sure you want to reset all settings?')) {
@@ -1103,6 +1110,24 @@ export function setupControls() {
 		}, { passive: false });
 		document.addEventListener('touchend', endDrag);
 	}
+
+	// Collapsible sections (desktop sidebar only)
+	document.querySelectorAll('.section-header').forEach(header => {
+		header.addEventListener('click', () => {
+			const sectionId = header.dataset.section;
+			const body = document.getElementById(sectionId + '-body');
+			const chevron = header.querySelector('.section-chevron');
+			if (!body) return;
+			const isCollapsed = body.classList.contains('hidden');
+			if (isCollapsed) {
+				body.classList.remove('hidden');
+				chevron?.classList.remove('is-collapsed');
+			} else {
+				body.classList.add('hidden');
+				chevron?.classList.add('is-collapsed');
+			}
+		});
+	});
 
 	return (currentState) => {
 		if (cityOverrideInput) cityOverrideInput.value = currentState.cityOverride || '';
@@ -1276,6 +1301,23 @@ export function setupControls() {
 
 		if (customW) customW.value = currentState.width;
 		if (customH) customH.value = currentState.height;
+
+		const activeExportScale = currentState.exportScale || 1;
+		document.querySelectorAll('.export-scale-btn').forEach(btn => {
+			const s = parseFloat(btn.dataset.scale);
+			const isActive = s === activeExportScale;
+			btn.classList.toggle('bg-accent', isActive);
+			btn.classList.toggle('text-white', isActive);
+			btn.classList.toggle('border-accent', isActive);
+			btn.classList.toggle('bg-slate-50', !isActive);
+			btn.classList.toggle('border-slate-200', !isActive);
+		});
+		const scaleResEl = document.getElementById('export-scale-resolution');
+		if (scaleResEl) {
+			const sw = Math.round(currentState.width * activeExportScale);
+			const sh = Math.round(currentState.height * activeExportScale);
+			scaleResEl.textContent = activeExportScale > 1 ? `→ ${sw} × ${sh} px` : '';
+		}
 
 		if (labelsToggle) labelsToggle.checked = !!currentState.showLabels;
 		if (markerToggle) markerToggle.checked = !!currentState.showMarker;
