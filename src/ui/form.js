@@ -64,15 +64,20 @@ function renderMarkerList(currentState) {
 		item.dataset.markerIndex = index;
 
 		item.innerHTML = `
-			<button type="button" class="marker-item-toggle w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-50 transition-colors">
-				<div class="flex items-center gap-2">
+			<div class="marker-item-toggle w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 transition-colors cursor-pointer">
+				<button type="button" class="marker-item-toggle-btn flex-1 flex items-center gap-2 text-left min-w-0">
 					<span class="text-[11px] font-semibold text-slate-700">Marker ${index + 1}</span>
 					${customBadge}
+				</button>
+				<div class="flex items-center gap-2 flex-shrink-0">
+					<button type="button" class="marker-remove-btn p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Remove marker">
+						<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+					</button>
+					<svg class="marker-chevron w-3 h-3 text-slate-400 transition-transform duration-150${isExpanded ? ' rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+					</svg>
 				</div>
-				<svg class="marker-chevron w-3 h-3 text-slate-400 transition-transform duration-150${isExpanded ? ' rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-				</svg>
-			</button>
+			</div>
 			<div class="marker-item-body px-3 pb-3 pt-1 space-y-3${isExpanded ? '' : ' hidden'}">
 				<div class="grid grid-cols-2 gap-2">
 					<div>
@@ -106,8 +111,8 @@ function renderMarkerList(currentState) {
 			</div>
 		`;
 
-		// Expand / collapse
-		item.querySelector('.marker-item-toggle').addEventListener('click', () => {
+		// Expand / collapse (toggle btn + chevron)
+		const toggleExpand = () => {
 			if (expandedMarkers.has(index)) {
 				expandedMarkers.delete(index);
 			} else {
@@ -115,6 +120,21 @@ function renderMarkerList(currentState) {
 			}
 			item.querySelector('.marker-item-body').classList.toggle('hidden');
 			item.querySelector('.marker-chevron').classList.toggle('rotate-180');
+		};
+		item.querySelector('.marker-item-toggle-btn').addEventListener('click', toggleExpand);
+		item.querySelector('.marker-chevron').addEventListener('click', toggleExpand);
+
+		// Remove this marker
+		item.querySelector('.marker-remove-btn').addEventListener('click', (e) => {
+			e.stopPropagation();
+			// Shift expanded indices down for any markers above the removed one
+			const newExpanded = new Set();
+			expandedMarkers.forEach(i => { if (i < index) newExpanded.add(i); else if (i > index) newExpanded.add(i - 1); });
+			expandedMarkers.clear();
+			newExpanded.forEach(i => expandedMarkers.add(i));
+			const newMarkers = (state.markers || []).filter((_, i) => i !== index);
+			updateState({ markers: newMarkers });
+			updateMarkerStyles(state);
 		});
 
 		// Per-marker icon
@@ -362,6 +382,16 @@ export function setupControls() {
 			updateState({ markerColor: null });
 			if (markerColorInput) markerColorInput.style.opacity = '0.4';
 			updateMarkerStyles(state);
+		});
+	}
+
+	const markerDefaultsToggle = document.getElementById('marker-defaults-toggle');
+	if (markerDefaultsToggle) {
+		markerDefaultsToggle.addEventListener('click', () => {
+			const body = document.getElementById('marker-defaults-body');
+			const chevron = document.getElementById('marker-defaults-chevron');
+			if (body) body.classList.toggle('hidden');
+			if (chevron) chevron.classList.toggle('rotate-180');
 		});
 	}
 
@@ -1041,18 +1071,6 @@ export function setupControls() {
 			newMarkers.push({ lat: state.lat, lon: state.lon });
 			updateState({ markers: newMarkers });
 			updateMarkerStyles(state);
-		});
-	}
-
-	const removeMarkerBtn = document.getElementById('remove-marker-btn');
-	if (removeMarkerBtn) {
-		removeMarkerBtn.addEventListener('click', () => {
-			const newMarkers = [...(state.markers || [])];
-			if (newMarkers.length > 0) {
-				newMarkers.pop();
-				updateState({ markers: newMarkers });
-				updateMarkerStyles(state);
-			}
 		});
 	}
 
