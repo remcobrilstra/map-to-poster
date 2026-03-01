@@ -20,6 +20,172 @@ import {
 import { searchLocation, formatCoords, fetchLocationPolygon } from '../map/geocoder.js';
 
 
+// Tracks which per-marker panels are expanded across re-renders
+const expandedMarkers = new Set();
+
+function renderMarkerList(currentState) {
+	const container = document.getElementById('marker-list');
+	if (!container) return;
+	const markers = currentState.markers || [];
+	container.innerHTML = '';
+
+	if (markers.length === 0) return;
+
+	const iconOptions = [
+		{ value: 'pin', label: 'Default Pin' },
+		{ value: 'circle', label: 'Modern Dot' },
+		{ value: 'heart', label: 'Heart' },
+		{ value: 'star', label: 'Star' },
+		{ value: 'none', label: 'Ghost Point' },
+	];
+
+	markers.forEach((markerData, index) => {
+		const isExpanded = expandedMarkers.has(index);
+		const hasCustomIcon = markerData.icon !== undefined;
+		const hasCustomSize = markerData.size !== undefined;
+		const hasCustomColor = markerData.color !== undefined;
+		const hasOverrides = hasCustomIcon || hasCustomSize || hasCustomColor;
+
+		const iconType = hasCustomIcon ? markerData.icon : (currentState.markerIcon || 'pin');
+		const sizeVal = hasCustomSize ? Math.round(markerData.size * 40) : Math.round((currentState.markerSize || 1) * 40);
+		const colorVal = hasCustomColor ? markerData.color : (currentState.markerColor || '#ef4444');
+		const colorOpacity = hasCustomColor ? '1' : '0.45';
+
+		const optionsHtml = iconOptions
+			.map(opt => `<option value="${opt.value}"${iconType === opt.value ? ' selected' : ''}>${opt.label}</option>`)
+			.join('');
+
+		const customBadge = hasOverrides
+			? `<span class="text-[8px] px-1 py-0.5 bg-accent/10 text-accent rounded font-semibold">custom</span>`
+			: '';
+
+		const item = document.createElement('div');
+		item.className = 'rounded-xl border border-slate-100 bg-white overflow-hidden';
+		item.dataset.markerIndex = index;
+
+		item.innerHTML = `
+			<button type="button" class="marker-item-toggle w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-50 transition-colors">
+				<div class="flex items-center gap-2">
+					<span class="text-[11px] font-semibold text-slate-700">Marker ${index + 1}</span>
+					${customBadge}
+				</div>
+				<svg class="marker-chevron w-3 h-3 text-slate-400 transition-transform duration-150${isExpanded ? ' rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+				</svg>
+			</button>
+			<div class="marker-item-body px-3 pb-3 pt-1 space-y-3${isExpanded ? '' : ' hidden'}">
+				<div class="grid grid-cols-2 gap-2">
+					<div>
+						<div class="flex justify-between items-center mb-1">
+							<span class="label-sm mb-0">Symbol</span>
+							${hasCustomIcon ? '<button type="button" class="marker-reset-icon text-[8px] text-slate-400 hover:text-accent transition-colors">↩ default</button>' : ''}
+						</div>
+						<div class="relative">
+							<select class="marker-per-icon input-field appearance-none cursor-pointer text-xs py-1.5">${optionsHtml}</select>
+							<svg class="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+						</div>
+					</div>
+					<div>
+						<div class="flex justify-between items-center mb-1">
+							<span class="label-sm mb-0">Size</span>
+							<div class="flex items-center gap-1.5">
+								<span class="marker-per-size-value text-[9px] font-bold text-accent">${sizeVal}px</span>
+								${hasCustomSize ? '<button type="button" class="marker-reset-size text-[8px] text-slate-400 hover:text-accent transition-colors">↩</button>' : ''}
+							</div>
+						</div>
+						<input type="range" class="marker-per-size w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent" min="10" max="120" step="2" value="${sizeVal}" />
+					</div>
+				</div>
+				<div>
+					<div class="flex justify-between items-center mb-1">
+						<span class="label-sm mb-0">Colour</span>
+						<button type="button" class="marker-reset-color text-[9px] font-semibold text-slate-400 hover:text-accent transition-colors">Use default</button>
+					</div>
+					<input type="color" class="marker-per-color w-full h-7 rounded-lg cursor-pointer border border-slate-200" value="${colorVal}" style="opacity: ${colorOpacity}" />
+				</div>
+			</div>
+		`;
+
+		// Expand / collapse
+		item.querySelector('.marker-item-toggle').addEventListener('click', () => {
+			if (expandedMarkers.has(index)) {
+				expandedMarkers.delete(index);
+			} else {
+				expandedMarkers.add(index);
+			}
+			item.querySelector('.marker-item-body').classList.toggle('hidden');
+			item.querySelector('.marker-chevron').classList.toggle('rotate-180');
+		});
+
+		// Per-marker icon
+		item.querySelector('.marker-per-icon').addEventListener('change', (e) => {
+			const newMarkers = [...(state.markers || [])];
+			newMarkers[index] = { ...newMarkers[index], icon: e.target.value };
+			updateState({ markers: newMarkers });
+			updateMarkerStyles(state);
+		});
+
+		// Per-marker size
+		const sizeSlider = item.querySelector('.marker-per-size');
+		const sizeLabel = item.querySelector('.marker-per-size-value');
+		sizeSlider.addEventListener('input', (e) => {
+			const sz = parseInt(e.target.value);
+			if (sizeLabel) sizeLabel.textContent = `${sz}px`;
+			const newMarkers = [...(state.markers || [])];
+			newMarkers[index] = { ...newMarkers[index], size: sz / 40.0 };
+			updateState({ markers: newMarkers });
+			updateMarkerStyles(state);
+		});
+
+		// Per-marker color
+		item.querySelector('.marker-per-color').addEventListener('input', (e) => {
+			const newMarkers = [...(state.markers || [])];
+			newMarkers[index] = { ...newMarkers[index], color: e.target.value };
+			e.target.style.opacity = '1';
+			updateState({ markers: newMarkers });
+			updateMarkerStyles(state);
+		});
+
+		// Reset icon to default
+		const resetIconBtn = item.querySelector('.marker-reset-icon');
+		if (resetIconBtn) {
+			resetIconBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const newMarkers = [...(state.markers || [])];
+				const { icon, ...rest } = newMarkers[index];
+				newMarkers[index] = rest;
+				updateState({ markers: newMarkers });
+				updateMarkerStyles(state);
+			});
+		}
+
+		// Reset size to default
+		const resetSizeBtn = item.querySelector('.marker-reset-size');
+		if (resetSizeBtn) {
+			resetSizeBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const newMarkers = [...(state.markers || [])];
+				const { size, ...rest } = newMarkers[index];
+				newMarkers[index] = rest;
+				updateState({ markers: newMarkers });
+				updateMarkerStyles(state);
+			});
+		}
+
+		// Reset color to default
+		item.querySelector('.marker-reset-color').addEventListener('click', (e) => {
+			e.stopPropagation();
+			const newMarkers = [...(state.markers || [])];
+			const { color, ...rest } = newMarkers[index];
+			newMarkers[index] = rest;
+			updateState({ markers: newMarkers });
+			updateMarkerStyles(state);
+		});
+
+		container.appendChild(item);
+	});
+}
+
 export function setupControls() {
 	const searchInput = document.getElementById('search-input');
 	const searchResults = document.getElementById('search-results');
@@ -1246,6 +1412,8 @@ export function setupControls() {
 		if (markerCountDisplay) {
 			markerCountDisplay.textContent = (currentState.markers || []).length;
 		}
+
+		renderMarkerList(currentState);
 
 		if (markerIconSelect) markerIconSelect.value = currentState.markerIcon || 'pin';
 		if (markerSizeSlider) {

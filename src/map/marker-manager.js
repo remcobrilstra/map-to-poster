@@ -34,22 +34,22 @@ export function updateMarkerStyles(currentState) {
 
 	if (!currentState.showMarker) return;
 
-	const iconType = currentState.markerIcon || 'pin';
-	const baseSize = 40;
-	const size = Math.round(baseSize * (currentState.markerSize || 1));
-
 	const isArtistic = currentState.renderMode === 'artistic';
 	const theme = isArtistic ? getSelectedArtisticTheme() : getSelectedTheme();
 	const themeColor = theme.route || (isArtistic ? (theme.text || '#0f172a') : (theme.textColor || '#0f172a'));
-	const color = currentState.markerColor || themeColor;
-
-	const html = (markerIcons[iconType] || markerIcons.pin)
-		.replace('class="marker-pin"', `style="width: ${size}px; height: ${size}px; color: ${color};"`);
-
-	const anchorX = size / 2;
-	const anchorY = iconType === 'pin' ? size : size / 2;
 
 	(currentState.markers || []).forEach((markerData, index) => {
+		const iconType = markerData.icon !== undefined ? markerData.icon : (currentState.markerIcon || 'pin');
+		const baseSize = 40;
+		const size = Math.round(baseSize * (markerData.size !== undefined ? markerData.size : (currentState.markerSize || 1)));
+		const color = markerData.color !== undefined ? markerData.color : (currentState.markerColor || themeColor);
+
+		const html = (markerIcons[iconType] || markerIcons.pin)
+			.replace('class="marker-pin"', `style="width: ${size}px; height: ${size}px; color: ${color};"`);
+
+		const anchorX = size / 2;
+		const anchorY = iconType === 'pin' ? size : size / 2;
+
 		const icon = L.divIcon({
 			className: 'custom-marker',
 			html: html,
@@ -65,7 +65,7 @@ export function updateMarkerStyles(currentState) {
 		lMarker.on('dragend', () => {
 			const pos = lMarker.getLatLng();
 			const newMarkers = [...currentState.markers];
-			newMarkers[index] = { lat: pos.lat, lon: pos.lng };
+			newMarkers[index] = { ...newMarkers[index], lat: pos.lat, lon: pos.lng };
 			updateState({ markers: newMarkers });
 		});
 
@@ -101,7 +101,7 @@ export function updateMarkerStyles(currentState) {
 			aMarker.on('dragend', () => {
 				const pos = aMarker.getLngLat();
 				const newMarkers = [...currentState.markers];
-				newMarkers[index] = { lat: pos.lat, lon: pos.lng };
+				newMarkers[index] = { ...newMarkers[index], lat: pos.lat, lon: pos.lng };
 				updateState({ markers: newMarkers });
 			});
 
@@ -125,7 +125,7 @@ export function updateMarkerVisibility(show) {
 export function updateMarkerPosition(lat, lon) {
 	const newMarkers = [...state.markers];
 	if (newMarkers.length > 0) {
-		newMarkers[0] = { lat, lon };
+		newMarkers[0] = { ...newMarkers[0], lat, lon };
 		updateState({ markers: newMarkers });
 	} else {
 		updateState({ markers: [{ lat, lon }] });
