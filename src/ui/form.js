@@ -50,7 +50,7 @@ export function setupControls() {
 	};
 
 	if (artisticMainGrid) {
-		const mainKeys = ['cyber_noir', 'golden_era', 'mangrove_maze'];
+		const mainKeys = ['blueprint', 'creme', 'misty_topo'];
 
 		const makeCard = (key, theme, isOther = false) => {
 			const p = paletteFor(theme);
