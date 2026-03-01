@@ -256,9 +256,21 @@
 						</div>
 						<p class="text-[9px] text-slate-400 italic text-center">Tip: Drag the markers on the map to set the route. Click on the line to add a custom bend. Double click a point to remove it.</p>
 					</div>
+				</div>
+			</div>
 
+			<div id="section-border" class="space-y-4">
+				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-border">
+					<h3 class="text-sm font-semibold text-slate-900">3. Location Highlight</h3>
+					<div class="flex items-center gap-2">
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">03</span>
+						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+					</div>
+				</div>
+
+				<div id="section-border-body" class="space-y-4 hidden">
 					<div class="flex items-center justify-between">
-						<span class="label-sm mb-0">Show Location Border</span>
+						<span class="label-sm mb-0">Show Location Highlight</span>
 						<div class="flex items-center gap-2">
 							<div id="location-border-loading" class="hidden">
 								<svg class="animate-spin h-3.5 w-3.5 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -275,19 +287,19 @@
 
 					<div id="border-settings" class="space-y-3 hidden">
 						<div>
-							<span class="label-sm">Border Colour</span>
+							<span class="label-sm">Colour</span>
 							<input type="color" id="border-color-input" value="#3b82f6" class="w-full h-8 rounded-lg cursor-pointer border border-slate-200" />
 						</div>
 
 						<div class="flex items-center justify-between">
-							<span class="label-sm mb-0">Fill Region</span>
+							<span class="label-sm mb-0">Show Line</span>
 							<label class="relative inline-flex items-center cursor-pointer">
-								<input type="checkbox" id="border-fill-toggle" class="sr-only peer" checked>
+								<input type="checkbox" id="border-line-toggle" class="sr-only peer" checked>
 								<div class="toggle-pill"></div>
 							</label>
 						</div>
 
-						<div>
+						<div id="border-line-settings">
 							<span class="label-sm">Line Style</span>
 							<div class="grid grid-cols-3 gap-2 mt-1">
 								<button type="button" data-style="solid" class="border-style-btn px-3 py-2 text-[10px] font-bold rounded-lg bg-slate-50 border border-slate-100">Solid</button>
@@ -295,15 +307,23 @@
 								<button type="button" data-style="dotted" class="border-style-btn px-3 py-2 text-[10px] font-bold rounded-lg bg-slate-50 border border-slate-100">Dotted</button>
 							</div>
 						</div>
+
+						<div class="flex items-center justify-between">
+							<span class="label-sm mb-0">Show Fill</span>
+							<label class="relative inline-flex items-center cursor-pointer">
+								<input type="checkbox" id="border-fill-toggle" class="sr-only peer" checked>
+								<div class="toggle-pill"></div>
+							</label>
+						</div>
 					</div>
 				</div>
 			</div>
 
 			<div id="section-style" class="space-y-4">
 				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-style">
-					<h3 class="text-sm font-semibold text-slate-900">3. Map Style</h3>
+					<h3 class="text-sm font-semibold text-slate-900">4. Map Style</h3>
 					<div class="flex items-center gap-2">
-						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">03</span>
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">04</span>
 						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
 					</div>
 				</div>
@@ -348,9 +368,9 @@
 
 			<div id="section-composition" class="space-y-4">
 				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-composition">
-					<h3 class="text-sm font-semibold text-slate-900">4. Composition</h3>
+					<h3 class="text-sm font-semibold text-slate-900">5. Composition</h3>
 					<div class="flex items-center gap-2">
-						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">04</span>
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">05</span>
 						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
 					</div>
 				</div>
@@ -433,9 +453,9 @@
 
 			<div id="section-typography" class="space-y-4">
 				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-typography">
-					<h3 class="text-sm font-semibold text-slate-900">5. Typography</h3>
+					<h3 class="text-sm font-semibold text-slate-900">6. Typography</h3>
 					<div class="flex items-center gap-2">
-						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">05</span>
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">06</span>
 						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
 					</div>
 				</div>
@@ -507,9 +527,9 @@
 
 			<div id="section-mat" class="space-y-4">
 				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-mat">
-					<h3 class="text-sm font-semibold text-slate-900">6. Mat / Passepartout</h3>
+					<h3 class="text-sm font-semibold text-slate-900">7. Mat / Passepartout</h3>
 					<div class="flex items-center gap-2">
-						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">06</span>
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">07</span>
 						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
 					</div>
 				</div>
@@ -563,9 +583,9 @@
 
 			<div id="section-output" class="space-y-4">
 				<div class="section-header flex items-center justify-between cursor-pointer select-none" data-section="section-output">
-					<h3 class="text-sm font-semibold text-slate-900">7. Output Size</h3>
+					<h3 class="text-sm font-semibold text-slate-900">8. Output Size</h3>
 					<div class="flex items-center gap-2">
-						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">07</span>
+						<span class="w-5 h-5 bg-slate-100 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-400">08</span>
 						<svg class="section-chevron is-collapsed w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
 					</div>
 				</div>

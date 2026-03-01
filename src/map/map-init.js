@@ -17,7 +17,7 @@ let pendingArtisticStyle = null;
 let pendingArtisticThemeName = null;
 let borderLayer = null;
 let currentBorderGeojson = null;
-let currentBorderStyle = { color: '#3b82f6', fill: true, lineStyle: 'dashed' };
+let currentBorderStyle = { color: '#3b82f6', showLine: true, fill: true, lineStyle: 'dashed' };
 
 export const getMap = () => map;
 export const getArtisticMap = () => artisticMap;
@@ -177,8 +177,9 @@ function initArtisticMap(containerId, center, zoom) {
 
 function _applyArtisticBorder(geojson) {
 	if (!artisticMap || !geojson) return;
-	const { color, fill, lineStyle } = currentBorderStyle;
+	const { color, showLine = true, fill, lineStyle } = currentBorderStyle;
 	const fillOpacity = fill ? 0.08 : 0;
+	const lineOpacity = showLine ? 0.85 : 0;
 	const dasharray = lineStyle === 'dashed' ? [4, 4] : [1, 0];
 	try {
 		const src = artisticMap.getSource('location-border');
@@ -190,6 +191,7 @@ function _applyArtisticBorder(geojson) {
 			}
 			if (artisticMap.getLayer('location-border-line')) {
 				artisticMap.setPaintProperty('location-border-line', 'line-color', color);
+				artisticMap.setPaintProperty('location-border-line', 'line-opacity', lineOpacity);
 				artisticMap.setPaintProperty('location-border-line', 'line-dasharray', dasharray);
 			}
 		} else {
@@ -204,7 +206,7 @@ function _applyArtisticBorder(geojson) {
 				id: 'location-border-line',
 				type: 'line',
 				source: 'location-border',
-				paint: { 'line-color': color, 'line-width': 2, 'line-dasharray': dasharray }
+				paint: { 'line-color': color, 'line-width': 2, 'line-opacity': lineOpacity, 'line-dasharray': dasharray }
 			});
 		}
 	} catch (e) { /* ignore if map not ready */ }
@@ -263,7 +265,7 @@ export function setLocationBorder(geojson, style) {
 	if (!geojson) return;
 	currentBorderGeojson = geojson;
 
-	const { color, fill, lineStyle } = currentBorderStyle;
+	const { color, showLine = true, fill, lineStyle } = currentBorderStyle;
 	const fillOpacity = fill ? 0.08 : 0;
 	const dashArray = lineStyle === 'dashed' ? '6 5' : null;
 
@@ -272,11 +274,11 @@ export function setLocationBorder(geojson, style) {
 		borderLayer = L.geoJSON(geojson, {
 			style: {
 				color,
-				weight: 2,
-				opacity: 0.85,
+				weight: showLine ? 2 : 0,
+				opacity: showLine ? 0.85 : 0,
 				fillColor: color,
 				fillOpacity,
-				...(dashArray ? { dashArray } : {}),
+				...(dashArray && showLine ? { dashArray } : {}),
 				className: 'location-border-layer'
 			}
 		}).addTo(map);

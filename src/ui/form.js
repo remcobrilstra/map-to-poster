@@ -295,6 +295,8 @@ export function setupControls() {
 	const borderLoadingEl = document.getElementById('location-border-loading');
 	const borderSettingsEl = document.getElementById('border-settings');
 	const borderColorInput = document.getElementById('border-color-input');
+	const borderLineToggle = document.getElementById('border-line-toggle');
+	const borderLineSettingsEl = document.getElementById('border-line-settings');
 	const borderFillToggle = document.getElementById('border-fill-toggle');
 	const markerSettings = document.getElementById('marker-settings');
 	const routeSettings = document.getElementById('route-settings');
@@ -876,6 +878,7 @@ export function setupControls() {
 		if (geojson) {
 			setLocationBorder(geojson, {
 				color: state.borderColor,
+				showLine: state.borderShowLine !== false,
 				fill: state.borderFill,
 				lineStyle: state.borderStyle
 			});
@@ -1125,6 +1128,15 @@ export function setupControls() {
 			const color = e.target.value;
 			updateState({ borderColor: color });
 			updateLocationBorderStyle({ color });
+		});
+	}
+
+	if (borderLineToggle) {
+		borderLineToggle.addEventListener('change', (e) => {
+			const showLine = e.target.checked;
+			updateState({ borderShowLine: showLine });
+			if (borderLineSettingsEl) borderLineSettingsEl.classList.toggle('hidden', !showLine);
+			updateLocationBorderStyle({ showLine });
 		});
 	}
 
@@ -1453,6 +1465,9 @@ export function setupControls() {
 		if (borderToggle) borderToggle.checked = !!currentState.showLocationBorder;
 		if (borderSettingsEl) borderSettingsEl.classList.toggle('hidden', !currentState.showLocationBorder);
 		if (borderColorInput) borderColorInput.value = currentState.borderColor || '#3b82f6';
+		const _borderShowLine = currentState.borderShowLine !== false;
+		if (borderLineToggle) borderLineToggle.checked = _borderShowLine;
+		if (borderLineSettingsEl) borderLineSettingsEl.classList.toggle('hidden', !_borderShowLine);
 		if (borderFillToggle) borderFillToggle.checked = currentState.borderFill !== false;
 		document.querySelectorAll('.border-style-btn').forEach(b => {
 			const isActive = b.dataset.style === (currentState.borderStyle || 'dashed');
@@ -1517,6 +1532,9 @@ export function setupControls() {
 		if (borderToggle) borderToggle.checked = !!currentState.showLocationBorder;
 		if (borderSettingsEl) borderSettingsEl.classList.toggle('hidden', !currentState.showLocationBorder);
 		if (borderColorInput) borderColorInput.value = currentState.borderColor || '#3b82f6';
+		const _borderShowLine2 = currentState.borderShowLine !== false;
+		if (borderLineToggle) borderLineToggle.checked = _borderShowLine2;
+		if (borderLineSettingsEl) borderLineSettingsEl.classList.toggle('hidden', !_borderShowLine2);
 		if (borderFillToggle) borderFillToggle.checked = currentState.borderFill !== false;
 		if (markerSettings) {
 			if (currentState.showMarker) markerSettings.classList.remove('hidden');
