@@ -750,6 +750,13 @@ export function setupControls() {
 		});
 	}
 
+	const toggleAttributionBtn = document.getElementById('toggle-attribution-btn');
+	if (toggleAttributionBtn) {
+		toggleAttributionBtn.addEventListener('click', () => {
+			updateState({ showAttribution: !state.showAttribution });
+		});
+	}
+
 	if (cityFontSelect) {
 		cityFontSelect.addEventListener('change', (e) => {
 			updateState({ cityFont: e.target.value });
@@ -1114,6 +1121,10 @@ export function setupControls() {
 		const toggleCoordsBtnSync = document.getElementById('toggle-coords-btn');
 		if (toggleCoordsBtnSync) {
 			toggleCoordsBtnSync.innerHTML = (currentState.showCoords !== false) ? EYE_OPEN_SVG : EYE_OFF_SVG;
+		}
+		const toggleAttributionBtnSync = document.getElementById('toggle-attribution-btn');
+		if (toggleAttributionBtnSync) {
+			toggleAttributionBtnSync.innerHTML = (currentState.showAttribution !== false) ? EYE_OPEN_SVG : EYE_OFF_SVG;
 		}
 
 		const overlayPosBtnsSync = document.querySelectorAll('.overlay-pos-btn');
@@ -1594,6 +1605,7 @@ export function updatePreviewStyles(currentState) {
 		attribution.style.color = activeTheme.text || activeTheme.textColor;
 		attribution.style.right = `${matWidth + 12}px`;
 		attribution.style.bottom = `${matWidth + 12}px`;
+		attribution.style.display = (currentState.showAttribution !== false) ? '' : 'none';
 	}
 
 	updateMarkerStyles(currentState);

@@ -532,12 +532,16 @@ export async function exportToPNG(element, filename, statusElement, options = {}
 
 				const attr = clonedDoc.querySelector('#poster-attribution');
 				if (attr) {
-					attr.style.color = textColor;
-					const matWidthLogical = state.matEnabled ? (state.matWidth / scale) : 0;
-					attr.style.right = `${matWidthLogical + (12 / scale)}px`;
-					attr.style.bottom = `${matWidthLogical + (12 / scale)}px`;
-					attr.style.fontSize = `${8 / scale}px`;
-					attr.style.opacity = '0.35';
+					if (state.showAttribution === false) {
+						attr.style.display = 'none';
+					} else {
+						attr.style.color = textColor;
+						const matWidthLogical = state.matEnabled ? (state.matWidth / scale) : 0;
+						attr.style.right = `${matWidthLogical + (12 / scale)}px`;
+						attr.style.bottom = `${matWidthLogical + (12 / scale)}px`;
+						attr.style.fontSize = `${8 / scale}px`;
+						attr.style.opacity = '0.35';
+					}
 				}
 
 				const clonedDivider = clonedDoc.querySelector('#poster-divider');
