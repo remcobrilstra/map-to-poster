@@ -115,6 +115,8 @@ export function setupControls() {
 	const markerIconSelect = document.getElementById('marker-icon-select');
 	const markerSizeSlider = document.getElementById('marker-size-slider');
 	const markerSizeValue = document.getElementById('marker-size-value');
+	const markerColorInput = document.getElementById('marker-color-input');
+	const markerColorReset = document.getElementById('marker-color-reset');
 
 	const overlayBgButtons = document.querySelectorAll('.overlay-bg-btn');
 	const overlaySizeButtons = document.querySelectorAll('.overlay-size-btn');
@@ -178,6 +180,22 @@ export function setupControls() {
 			updateState({ markerSize: size / 40.0 });
 			updateMarkerStyles(state);
 			if (markerSizeValue) markerSizeValue.textContent = `${size}px`;
+		});
+	}
+
+	if (markerColorInput) {
+		markerColorInput.addEventListener('input', (e) => {
+			updateState({ markerColor: e.target.value });
+			e.target.style.opacity = '1';
+			updateMarkerStyles(state);
+		});
+	}
+
+	if (markerColorReset) {
+		markerColorReset.addEventListener('click', () => {
+			updateState({ markerColor: null });
+			if (markerColorInput) markerColorInput.style.opacity = '0.4';
+			updateMarkerStyles(state);
 		});
 	}
 
@@ -1192,6 +1210,10 @@ export function setupControls() {
 			markerSizeSlider.value = size;
 			if (markerSizeValue) markerSizeValue.textContent = `${size}px`;
 		}
+		if (markerColorInput) {
+			markerColorInput.value = currentState.markerColor || '#ef4444';
+			markerColorInput.style.opacity = currentState.markerColor ? '1' : '0.4';
+		}
 
 		if (routeToggle) {
 			routeToggle.checked = !!currentState.showRoute;
@@ -1260,6 +1282,10 @@ export function setupControls() {
 			const sizePx = Math.round((currentState.markerSize || 1) * 40);
 			markerSizeSlider.value = sizePx;
 			if (markerSizeValue) markerSizeValue.textContent = `${sizePx}px`;
+		}
+		if (markerColorInput) {
+			markerColorInput.value = currentState.markerColor || '#ef4444';
+			markerColorInput.style.opacity = currentState.markerColor ? '1' : '0.4';
 		}
 
 		if (matToggle) matToggle.checked = !!currentState.matEnabled;

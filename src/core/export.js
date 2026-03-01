@@ -109,7 +109,7 @@ async function captureMapSnapshot() {
 					const centerPoint = project(center.lat, center.lng, scale);
 
 					const theme = getSelectedArtisticTheme();
-					const color = theme.route || '#EF4444';
+					const color = state.markerColor || theme.route || '#EF4444';
 
 					for (const markerData of state.markers) {
 						const markerPoint = project(markerData.lat, markerData.lon, scale);
@@ -198,7 +198,7 @@ async function captureMapSnapshot() {
 				const centerPoint = project(center.lat, center.lng, scaleMap);
 
 				const theme = getSelectedTheme();
-				const color = theme.route || '#EF4444';
+				const color = state.markerColor || theme.route || '#EF4444';
 
 				for (const markerData of state.markers) {
 					const markerPoint = project(markerData.lat, markerData.lon, scaleMap);
