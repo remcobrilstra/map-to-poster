@@ -11,9 +11,13 @@ import {
 	updateMapTheme,
 	updateMarkerStyles,
 	updateRouteStyles,
-	updateRouteGeometry
+	updateRouteGeometry,
+	fitLocationBounds,
+	setLocationBorder,
+	clearLocationBorder,
+	updateLocationBorderStyle
 } from '../map/map-init.js';
-import { searchLocation, formatCoords } from '../map/geocoder.js';
+import { searchLocation, formatCoords, fetchLocationPolygon } from '../map/geocoder.js';
 
 
 export function setupControls() {
@@ -101,6 +105,11 @@ export function setupControls() {
 	const labelsToggle = document.getElementById('show-labels-toggle');
 	const markerToggle = document.getElementById('show-marker-toggle');
 	const routeToggle = document.getElementById('show-route-toggle');
+	const borderToggle = document.getElementById('show-location-border-toggle');
+	const borderLoadingEl = document.getElementById('location-border-loading');
+	const borderSettingsEl = document.getElementById('border-settings');
+	const borderColorInput = document.getElementById('border-color-input');
+	const borderFillToggle = document.getElementById('border-fill-toggle');
 	const markerSettings = document.getElementById('marker-settings');
 	const routeSettings = document.getElementById('route-settings');
 	const markerIconSelect = document.getElementById('marker-icon-select');
@@ -535,6 +544,8 @@ export function setupControls() {
 	let searchTimeout;
 	let currentSearchController = null;
 	let searchRequestId = 0;
+	let lastSearchResults = [];
+	let lastOsmInfo = null; // { osmType, osmId } of the last selected search result
 
 	searchInput.addEventListener('input', (e) => {
 		clearTimeout(searchTimeout);
@@ -570,13 +581,15 @@ export function setupControls() {
 			if (searchLoading) searchLoading.classList.add('hidden');
 
 			if (results && results.length > 0) {
-				searchResults.innerHTML = results.map(r => `
-		  <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${r.shortName}" data-country="${r.country || ''}">
+				lastSearchResults = results;
+				searchResults.innerHTML = results.map((r, i) => `
+		  <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm" data-index="${i}" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${r.shortName}" data-country="${r.country || ''}">
 			${r.name}
 		  </div>
 		`).join('');
 				searchResults.classList.remove('hidden');
 			} else {
+				lastSearchResults = [];
 				searchResults.classList.add('hidden');
 			}
 
@@ -586,10 +599,15 @@ export function setupControls() {
 
 	let lastSelectionAt = 0;
 	function selectResultElement(item) {
+		const idx = item.dataset.index !== undefined ? parseInt(item.dataset.index) : -1;
+		const result = (idx >= 0 && lastSearchResults[idx]) ? lastSearchResults[idx] : null;
 		const lat = parseFloat(item.dataset.lat);
 		const lon = parseFloat(item.dataset.lon);
 		const name = item.dataset.name;
 		const country = item.dataset.country;
+
+		// Stash OSM info for border fetching
+		lastOsmInfo = result ? { osmType: result.osmType, osmId: result.osmId } : null;
 
 		updateState({
 			city: (name || '').toUpperCase(),
@@ -605,7 +623,17 @@ export function setupControls() {
 			routeGeometry: []
 		});
 
-		updateMapPosition(lat, lon);
+		// Use bounding box for automatic zoom, navigate to the exact search-result coords
+		if (result && result.boundingbox) {
+			fitLocationBounds(result.boundingbox, lat, lon, {
+				matEnabled: state.matEnabled,
+				matWidth: state.matWidth,
+				posterWidth: state.width,
+				posterHeight: state.height
+			});
+		} else {
+			updateMapPosition(lat, lon);
+		}
 		updateMarkerStyles(state);
 
 		if (state.showRoute) {
@@ -614,9 +642,32 @@ export function setupControls() {
 			});
 		}
 
+		// Refresh border if the toggle is on
+		if (state.showLocationBorder) {
+			_applyLocationBorder();
+		} else {
+			clearLocationBorder();
+		}
+
 		searchInput.value = name;
 		searchResults.classList.add('hidden');
 		lastSelectionAt = Date.now();
+	}
+
+	async function _applyLocationBorder() {
+		if (!lastOsmInfo) return;
+		if (borderLoadingEl) borderLoadingEl.classList.remove('hidden');
+		const geojson = await fetchLocationPolygon(lastOsmInfo.osmType, lastOsmInfo.osmId);
+		if (borderLoadingEl) borderLoadingEl.classList.add('hidden');
+		if (geojson) {
+			setLocationBorder(geojson, {
+				color: state.borderColor,
+				fill: state.borderFill,
+				lineStyle: state.borderStyle
+			});
+		} else {
+			clearLocationBorder();
+		}
 	}
 
 	searchResults.addEventListener('pointerdown', (e) => {
@@ -839,6 +890,49 @@ export function setupControls() {
 			updateRouteStyles(state);
 		});
 	}
+
+	if (borderToggle) {
+		borderToggle.addEventListener('change', async (e) => {
+			const show = e.target.checked;
+			updateState({ showLocationBorder: show });
+			if (borderSettingsEl) borderSettingsEl.classList.toggle('hidden', !show);
+			if (show) {
+				await _applyLocationBorder();
+			} else {
+				clearLocationBorder();
+			}
+		});
+	}
+
+	if (borderColorInput) {
+		borderColorInput.addEventListener('input', (e) => {
+			const color = e.target.value;
+			updateState({ borderColor: color });
+			updateLocationBorderStyle({ color });
+		});
+	}
+
+	if (borderFillToggle) {
+		borderFillToggle.addEventListener('change', (e) => {
+			const fill = e.target.checked;
+			updateState({ borderFill: fill });
+			updateLocationBorderStyle({ fill });
+		});
+	}
+
+	document.querySelectorAll('.border-style-btn').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const lineStyle = btn.dataset.style;
+			updateState({ borderStyle: lineStyle });
+			updateLocationBorderStyle({ lineStyle });
+			document.querySelectorAll('.border-style-btn').forEach(b => {
+				const isActive = b.dataset.style === lineStyle;
+				b.classList.toggle('bg-accent', isActive);
+				b.classList.toggle('text-white', isActive);
+				b.classList.toggle('bg-slate-50', !isActive);
+			});
+		});
+	});
 
 	const resetRouteBtn = document.getElementById('reset-route-btn');
 	if (resetRouteBtn) {
@@ -1105,6 +1199,17 @@ export function setupControls() {
 			if (settings) settings.classList.toggle('hidden', !currentState.showRoute);
 		}
 
+		if (borderToggle) borderToggle.checked = !!currentState.showLocationBorder;
+		if (borderSettingsEl) borderSettingsEl.classList.toggle('hidden', !currentState.showLocationBorder);
+		if (borderColorInput) borderColorInput.value = currentState.borderColor || '#3b82f6';
+		if (borderFillToggle) borderFillToggle.checked = currentState.borderFill !== false;
+		document.querySelectorAll('.border-style-btn').forEach(b => {
+			const isActive = b.dataset.style === (currentState.borderStyle || 'dashed');
+			b.classList.toggle('bg-accent', isActive);
+			b.classList.toggle('text-white', isActive);
+			b.classList.toggle('bg-slate-50', !isActive);
+		});
+
 		const routeCountDisplay = document.getElementById('route-count');
 		if (routeCountDisplay) {
 			const viaPoints = (currentState.routeViaPoints || []).length;
@@ -1141,6 +1246,10 @@ export function setupControls() {
 
 		if (labelsToggle) labelsToggle.checked = !!currentState.showLabels;
 		if (markerToggle) markerToggle.checked = !!currentState.showMarker;
+		if (borderToggle) borderToggle.checked = !!currentState.showLocationBorder;
+		if (borderSettingsEl) borderSettingsEl.classList.toggle('hidden', !currentState.showLocationBorder);
+		if (borderColorInput) borderColorInput.value = currentState.borderColor || '#3b82f6';
+		if (borderFillToggle) borderFillToggle.checked = currentState.borderFill !== false;
 		if (markerSettings) {
 			if (currentState.showMarker) markerSettings.classList.remove('hidden');
 			else markerSettings.classList.add('hidden');

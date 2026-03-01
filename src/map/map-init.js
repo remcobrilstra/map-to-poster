@@ -15,6 +15,9 @@ let isSyncing = false;
 let styleChangeInProgress = false;
 let pendingArtisticStyle = null;
 let pendingArtisticThemeName = null;
+let borderLayer = null;
+let currentBorderGeojson = null;
+let currentBorderStyle = { color: '#3b82f6', fill: true, lineStyle: 'dashed' };
 
 export const getMap = () => map;
 export const getArtisticMap = () => artisticMap;
@@ -87,6 +90,9 @@ function initArtisticMap(containerId, center, zoom) {
 			artisticMap.setStyle(next);
 		} else {
 			styleChangeInProgress = false;
+			if (currentBorderGeojson) {
+				_applyArtisticBorder(currentBorderGeojson);
+			}
 		}
 	});
 
@@ -166,6 +172,141 @@ function initArtisticMap(containerId, center, zoom) {
 		artisticMap.getCanvas().style.cursor = '';
 	});
 }
+
+// ─── Location Border ────────────────────────────────────────────────────────
+
+function _applyArtisticBorder(geojson) {
+	if (!artisticMap || !geojson) return;
+	const { color, fill, lineStyle } = currentBorderStyle;
+	const fillOpacity = fill ? 0.08 : 0;
+	const dasharray = lineStyle === 'dashed' ? [4, 4] : [1, 0];
+	try {
+		const src = artisticMap.getSource('location-border');
+		if (src) {
+			src.setData(geojson);
+			if (artisticMap.getLayer('location-border-fill')) {
+				artisticMap.setPaintProperty('location-border-fill', 'fill-color', color);
+				artisticMap.setPaintProperty('location-border-fill', 'fill-opacity', fillOpacity);
+			}
+			if (artisticMap.getLayer('location-border-line')) {
+				artisticMap.setPaintProperty('location-border-line', 'line-color', color);
+				artisticMap.setPaintProperty('location-border-line', 'line-dasharray', dasharray);
+			}
+		} else {
+			artisticMap.addSource('location-border', { type: 'geojson', data: geojson });
+			artisticMap.addLayer({
+				id: 'location-border-fill',
+				type: 'fill',
+				source: 'location-border',
+				paint: { 'fill-color': color, 'fill-opacity': fillOpacity }
+			});
+			artisticMap.addLayer({
+				id: 'location-border-line',
+				type: 'line',
+				source: 'location-border',
+				paint: { 'line-color': color, 'line-width': 2, 'line-dasharray': dasharray }
+			});
+		}
+	} catch (e) { /* ignore if map not ready */ }
+}
+
+function _clearArtisticBorder() {
+	if (!artisticMap) return;
+	try {
+		if (artisticMap.getLayer('location-border-line')) artisticMap.removeLayer('location-border-line');
+		if (artisticMap.getLayer('location-border-fill')) artisticMap.removeLayer('location-border-fill');
+		if (artisticMap.getSource('location-border')) artisticMap.removeSource('location-border');
+	} catch (e) { /* ignore */ }
+}
+
+/**
+ * Fit the map view to a bounding box (from Nominatim: [southLat, northLat, westLon, eastLon]).
+ * When lat/lon are provided the map navigates to that exact point at the bbox-derived zoom
+ * level, rather than the bbox centre.
+ * @param {number[]} bbox
+ * @param {number} [lat]
+ * @param {number} [lon]
+ * @param {{ matEnabled?: boolean, matWidth?: number, posterWidth?: number, posterHeight?: number }} [matOpts]
+ */
+export function fitLocationBounds(bbox, lat, lon, matOpts = {}) {
+	if (!map || !bbox) return;
+	const [south, north, west, east] = bbox.map(Number);
+	const bounds = L.latLngBounds([[south, west], [north, east]]);
+
+	let padPx = 30;
+	if (matOpts.matEnabled && matOpts.matWidth > 0) {
+		const mapSize = map.getSize();
+		const { matWidth = 40, posterWidth = 1080, posterHeight = 1080 } = matOpts;
+		const matRatioX = matWidth / posterWidth;
+		const matRatioY = matWidth / posterHeight;
+		const padX = Math.round(matRatioX * mapSize.x);
+		const padY = Math.round(matRatioY * mapSize.y);
+		padPx = Math.max(padX, padY) + 20;
+	}
+
+	const zoom = Math.min(map.getBoundsZoom(bounds, false, L.point(padPx * 2, padPx * 2)), 16);
+	if (lat !== undefined && lon !== undefined) {
+		map.setView([lat, lon], zoom, { animate: true });
+	} else {
+		map.fitBounds(bounds, { padding: [padPx, padPx], maxZoom: 16, animate: true });
+	}
+}
+
+/**
+ * Render a GeoJSON polygon as a city border overlay on both maps.
+ * @param {object} geojson
+ * @param {{ color?: string, fill?: boolean, lineStyle?: 'solid'|'dashed' }} [style]
+ */
+export function setLocationBorder(geojson, style) {
+	if (style) currentBorderStyle = { ...currentBorderStyle, ...style };
+	clearLocationBorder();
+	if (!geojson) return;
+	currentBorderGeojson = geojson;
+
+	const { color, fill, lineStyle } = currentBorderStyle;
+	const fillOpacity = fill ? 0.08 : 0;
+	const dashArray = lineStyle === 'dashed' ? '6 5' : null;
+
+	// Leaflet overlay
+	if (map) {
+		borderLayer = L.geoJSON(geojson, {
+			style: {
+				color,
+				weight: 2,
+				opacity: 0.85,
+				fillColor: color,
+				fillOpacity,
+				...(dashArray ? { dashArray } : {}),
+				className: 'location-border-layer'
+			}
+		}).addTo(map);
+	}
+
+	// MapLibre artistic overlay
+	_applyArtisticBorder(geojson);
+}
+
+/**
+ * Update border appearance without re-fetching the polygon.
+ * @param {{ color?: string, fill?: boolean, lineStyle?: 'solid'|'dashed' }} style
+ */
+export function updateLocationBorderStyle(style) {
+	if (!currentBorderGeojson) return;
+	currentBorderStyle = { ...currentBorderStyle, ...style };
+	setLocationBorder(currentBorderGeojson);
+}
+
+/** Remove the city border overlay from both maps. */
+export function clearLocationBorder() {
+	if (borderLayer) {
+		borderLayer.remove();
+		borderLayer = null;
+	}
+	currentBorderGeojson = null;
+	_clearArtisticBorder();
+}
+
+// ─── Artistic Style ──────────────────────────────────────────────────────────
 
 export function updateArtisticStyle(theme) {
 	if (!artisticMap) return;
