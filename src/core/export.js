@@ -171,12 +171,20 @@ async function captureMapSnapshot(exportScale = 1) {
 				.filter(tile => tile.complete && tile.naturalWidth > 0)
 				.map(tile => {
 					const tileRect = tile.getBoundingClientRect();
+					// Use floor/ceil to snap to integer pixel boundaries so adjacent
+					// tiles share the exact same edge — prevents 1-px gaps at all scales.
+					const rawX = (tileRect.left - containerRect.left) * scaleFactor;
+					const rawY = (tileRect.top - containerRect.top) * scaleFactor;
+					const rawRight = rawX + tileRect.width * scaleFactor;
+					const rawBottom = rawY + tileRect.height * scaleFactor;
+					const x = Math.floor(rawX);
+					const y = Math.floor(rawY);
 					return {
 						src: tile.src,
-						x: (tileRect.left - containerRect.left) * scaleFactor,
-						y: (tileRect.top - containerRect.top) * scaleFactor,
-						w: tileRect.width * scaleFactor,
-						h: tileRect.height * scaleFactor,
+						x,
+						y,
+						w: Math.ceil(rawRight) - x,
+						h: Math.ceil(rawBottom) - y,
 					};
 				});
 
